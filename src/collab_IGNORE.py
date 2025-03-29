@@ -1,1 +1,0 @@
-print("Hello World this is cuh a nice day")
