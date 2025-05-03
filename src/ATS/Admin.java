@@ -10,8 +10,9 @@ public class Admin {
     private Connection connection;
     private Scanner scanner;
 
-    public Admin(Connection connection, Scanner scanner)
+    public Admin(Connection connection, Scanner scanner,int id)
     {
+        this.id=id;
         this.scanner=scanner;
         this.connection=connection;
     }
@@ -24,7 +25,7 @@ public class Admin {
             System.out.println("3.  View All Bookings");//
             System.out.println("4.  View All Flights");//
             System.out.println("5.  Assign Flight");
-            System.out.println("6.  Add Plane");
+            System.out.println("6.  Add Plane");//
             System.out.println("7.  Add Flight");
             System.out.println("8.  Update Flight");
             System.out.println("9.  Another Update Flight");
@@ -50,7 +51,25 @@ public class Admin {
                     System.out.println("Assigning Flight...");
                     break;
                 case 6:
-                    System.out.println("Adding a New Plane...");
+                    //Add Plane
+                    scanner.nextLine();
+                    System.out.print("Enter Plane Model: ");
+                    String planeModel = scanner.nextLine();
+
+                    System.out.print("Enter Manufacturer: ");
+                    String manufacturer = scanner.nextLine();
+
+                    System.out.print("Enter number of Business Seats: ");
+                    int businessSeats = scanner.nextInt();
+
+                    scanner.nextLine();
+
+                    System.out.print("Enter number of Economy Seats: ");
+                    int economySeats = scanner.nextInt();
+
+                    scanner.nextLine();
+
+                    admin.addPlane(planeModel, manufacturer, businessSeats, economySeats);
                     break;
                 case 7:
                     System.out.println("Adding a New Flight...");
@@ -70,8 +89,7 @@ public class Admin {
         }
     }
 
-
-
+    /// ////////////////////////////////////////////////////////////  VIEW WALE
     public void viewClients() {
         try {
             String query = "SELECT * FROM client";  // Your query to fetch clients
@@ -160,4 +178,28 @@ public class Admin {
             System.out.println(e.getMessage());
         }
     }
+    /// ///////////////////////////////////////////////////////////   ADD WALE
+    public void addPlane(String planeModel, String manufacturer, int businessSeats, int economySeats) {
+        try {
+            String query = "INSERT INTO plane (admin_id, plane_model, manufacturer, business_seats, economy_seats) VALUES (?, ?, ?, ?, ?)";
+            PreparedStatement stmt = connection.prepareStatement(query);
+            stmt.setInt(1, this.id);
+            stmt.setString(2, planeModel);
+            stmt.setString(3, manufacturer);
+            stmt.setInt(4, businessSeats);
+            stmt.setInt(5, economySeats);
+
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Plane added successfully!");
+            } else {
+                System.out.println("Error: Plane not added.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+
+
 }

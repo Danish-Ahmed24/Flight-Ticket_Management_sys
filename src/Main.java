@@ -12,7 +12,7 @@ public class Main {
         try {
             Connection connection = DriverManager.getConnection(url,username,password);
             Scanner scanner = new Scanner(System.in);
-            Admin admin = new Admin(connection,scanner);
+            Admin admin = new Admin(connection,scanner,1);
             admin.adminMenu(admin);
         }catch (SQLException e)
         {
