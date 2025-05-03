@@ -1,9 +1,6 @@
 package ATS;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Scanner;
 
 public class Admin {
@@ -22,10 +19,10 @@ public class Admin {
     {
         System.out.println("Welcome ADMIN:-> " + admin.name);
         while (true) {
-            System.out.println("1.  View Clients");
-            System.out.println("2.  View Planes");
-            System.out.println("3.  View All Bookings");
-            System.out.println("4.  View All Flights");
+            System.out.println("1.  View Clients");//
+            System.out.println("2.  View Planes");//
+            System.out.println("3.  View All Bookings");//
+            System.out.println("4.  View All Flights");//
             System.out.println("5.  Assign Flight");
             System.out.println("6.  Add Plane");
             System.out.println("7.  Add Flight");
@@ -44,10 +41,10 @@ public class Admin {
                     admin.viewPlanes();//view Planes
                     break;
                 case 3:
-                    admin.viewAllBookings();
+                    admin.viewAllBookings();// view Bookings
                     break;
                 case 4:
-                    System.out.println("Viewing All Flights...");
+                    admin.viewFlights();//view Flights
                     break;
                 case 5:
                     System.out.println("Assigning Flight...");
@@ -117,8 +114,7 @@ public class Admin {
             System.out.println(e.getMessage());
         }
     }
-    public void viewAllBookings()
-    {
+    public void viewAllBookings() {
         try{
             String query = "SELECT * FROM booking";
             Statement statement = connection.createStatement();
@@ -134,6 +130,30 @@ public class Admin {
                 boolean isreserved = resultSet.getBoolean("isreserved");
                 float fees = resultSet.getFloat("fees");
                 System.out.println("ID: " + id + ", Flight ID: " + flight_id + ", Client ID: " + client_id + ", Is Paid: " + ispaid + ", Is Reserved: " + isreserved + ", Fees: $" + fees);
+            }
+        }catch (SQLException e)
+        {
+            System.out.println(e.getMessage());
+        }
+    }
+    public void viewFlights() {
+        try{
+            String query = "SELECT * FROM flight";
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);
+
+            //Process the ResultSet and display planes
+            while (resultSet.next())
+            {
+                int id = resultSet.getInt("id");
+                int plane_id = resultSet.getInt("plane_id");
+                String source = resultSet.getString("source");
+                String destination = resultSet.getString("destination");
+                Time arrival_time = resultSet.getTime("arrival_time");
+                Time reporting_time = resultSet.getTime("reporting_time");
+                float expense = resultSet.getFloat("expense");
+                System.out.println("ID: " + id + ", Plane ID: " + plane_id + ", Source: " + source + ", Destination: " + destination + ", Arrival Time: " + arrival_time + ", Reporting Time: " + reporting_time + ", Expense: $" + expense);
+
             }
         }catch (SQLException e)
         {
