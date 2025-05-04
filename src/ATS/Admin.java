@@ -98,7 +98,16 @@ public class Admin {
 
                     break;
                 case 8:
-                    System.out.println("Updating a Flight...");
+                    //Update Flight
+                    System.out.print("Enter Flight ID: ");
+                    int flightId = scanner.nextInt();
+                    scanner.nextLine(); // Consume newline
+                    System.out.print("Enter field to update (source, destination, arrival_time, reporting_time, expense): ");
+                    String field = scanner.nextLine();
+                    System.out.print("Enter new value for " + field + ": ");
+                    String newValue = scanner.nextLine();
+                    String result = admin.updateFlight(flightId, field, newValue);
+                    System.out.println(result);
                     break;
                 case 9:
                     System.out.println("Updating another Flight...");
@@ -243,7 +252,46 @@ public class Admin {
             System.out.println("Error: " + e.getMessage());
         }
     }
+    /// //////////////////////////////////////////////////////////    UPDATE WALE
+    public String updateFlight(int flightId, String field, String newValue) {
+        try {
+            // Validate field name to avoid SQL injection
+            if (!field.matches("source|destination|arrival_time|reporting_time|expense")) {
+                return "Invalid field name.";
+            }
 
+            String query = "UPDATE flight SET " + field + " = ? WHERE flight_id = ?";
+            PreparedStatement stmt = connection.prepareStatement(query);
+
+            // Set value based on field type
+            switch (field) {
+                case "expense":
+                    stmt.setFloat(1, Float.parseFloat(newValue));
+                    break;
+                case "arrival_time":
+                case "reporting_time":
+                    stmt.setTime(1, Time.valueOf(newValue));
+                    break;
+                default:
+                    stmt.setString(1, newValue);
+                    break;
+            }
+
+            stmt.setInt(2, flightId);
+
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                return "Flight updated successfully.";
+            } else {
+                return "No flight found with the given ID.";
+            }
+
+        } catch (SQLException e) {
+            return "SQL Error: " + e.getMessage();
+        } catch (IllegalArgumentException e) {
+            return "Invalid format. Time must be HH:MM:SS or expense must be a number.";
+        }
+    }
 
 
 }
