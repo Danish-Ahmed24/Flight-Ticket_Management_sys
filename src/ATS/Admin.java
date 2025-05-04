@@ -4,11 +4,11 @@ import java.sql.*;
 import java.util.Scanner;
 
 public class Admin {
-    private int id;
+    private final int id;
     private String name,password,companyname,email;
     private float profit;
-    private Connection connection;
-    private Scanner scanner;
+    private final Connection connection;
+    private final Scanner scanner;
 
     public Admin(Connection connection, Scanner scanner,int id)
     {
@@ -26,7 +26,7 @@ public class Admin {
             System.out.println("4.  View All Flights");//
             System.out.println("5.  Assign Flight");
             System.out.println("6.  Add Plane");//
-            System.out.println("7.  Add Flight");
+            System.out.println("7.  Add Flight");//
             System.out.println("8.  Update Flight");
             System.out.println("9.  Another Update Flight");
             System.out.println("10. Log out");
@@ -72,7 +72,30 @@ public class Admin {
                     admin.addPlane(planeModel, manufacturer, businessSeats, economySeats);
                     break;
                 case 7:
+                    //addFlight
                     System.out.println("Adding a New Flight...");
+                    System.out.print("Enter plane ID: ");
+                    try{
+                    int plane_id = scanner.nextInt();
+                    scanner.nextLine();
+                    System.out.print("Enter source: ");
+                    String source = scanner.nextLine();
+                    System.out.print("Enter destination: ");
+                    String destination = scanner.nextLine();
+                    System.out.print("Enter arrival time (HH:MM:SS): ");
+                    String arrivalStr = scanner.nextLine();
+                    Time arrival_time = Time.valueOf(arrivalStr);
+                    System.out.print("Enter reporting time (HH:MM:SS): ");
+                    String reportingStr = scanner.nextLine();
+                    Time reporting_time = Time.valueOf(reportingStr);
+                    System.out.print("Enter expense: ");
+                    float expense = scanner.nextFloat();
+                    admin.addFlight(plane_id, source, destination, arrival_time, reporting_time, expense);
+            }
+             catch (IllegalArgumentException e) {
+                System.out.println("Invalid time format. Please use HH:MM:SS.");
+            }
+
                     break;
                 case 8:
                     System.out.println("Updating a Flight...");
@@ -192,6 +215,27 @@ public class Admin {
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected > 0) {
                 System.out.println("Plane added successfully!");
+            } else {
+                System.out.println("Error: Plane not added.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+    public void addFlight(int plane_id,String source,String destination,Time arrival_time,Time reporting_time,float expense) {
+        try {
+            String query = "INSERT INTO flight (plane_id,source,destination,arrival_time,reporting_time,expense) VALUES (?, ?, ?, ?, ?,?)";
+            PreparedStatement stmt = connection.prepareStatement(query);
+            stmt.setInt(1,plane_id);
+            stmt.setString(2,source);
+            stmt.setString(3,destination);
+            stmt.setTime(4,arrival_time);
+            stmt.setTime(5,reporting_time);
+            stmt.setFloat(6,expense);
+
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Flight added successfully!");
             } else {
                 System.out.println("Error: Plane not added.");
             }
