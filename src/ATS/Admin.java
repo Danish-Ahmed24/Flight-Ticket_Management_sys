@@ -21,6 +21,16 @@ public class Admin extends User<Admin>{
         this.profit = profit;
         this.companyname = companyname;
     }
+
+
+    public void setProfit(float profit) {
+        this.profit = profit;
+    }
+
+    public void setCompanyname(String companyname) {
+        this.companyname = companyname;
+    }
+
     @Override
     public void menu(Admin admin) throws Exception
     {
@@ -40,16 +50,16 @@ public class Admin extends User<Admin>{
 
             switch (option) {
                 case 1:
-                    admin.viewClients();//view Client
+                    ViewData.viewClients(connection);//view Client
                     break;
                 case 2:
-                    admin.viewPlanes();//view Planes
+                    ViewData.viewPlanes(connection);//view Planes
                     break;
                 case 3:
-                    admin.viewAllBookings();// view Bookings
+                    ViewData.viewAllBookings(connection);// view Bookings
                     break;
                 case 4:
-                    admin.viewFlights();//view Flights
+                    ViewData.viewFlights(connection);//view Flights
                     break;
                 case 5:
                     //Add Plane
@@ -59,7 +69,7 @@ public class Admin extends User<Admin>{
 
                     System.out.print("Enter Manufacturer: ");
                     String manufacturer = scanner.nextLine();
-                    if(admin.planeExists(planeModel,manufacturer))
+                    if(ExistData.planeExists(connection,planeModel,manufacturer))
                     {
                         System.out.println("Plane already exists...");
                         break;
@@ -87,7 +97,7 @@ public class Admin extends User<Admin>{
                     try {
                         int plane_id = scanner.nextInt();
                         scanner.nextLine(); // consume newline
-                        if(!planeExists(plane_id)){
+                        if(!ExistData.planeExists(connection,plane_id)){
                             throw new PlaneNotFoundException("Plane not available");
                         }
                         if(plane_id<0)
@@ -138,7 +148,7 @@ public class Admin extends User<Admin>{
                         {
                             throw  new ValueLessThanZeroException("Expense cant be negative");
                         }
-                        if(flightExists(plane_id,source,destination,arrival_time,reporting_time,expense)){
+                        if(ExistData.flightExists(connection,plane_id,source,destination,arrival_time,reporting_time,expense)){
                             throw new FlightAlreadyExistsException("Flight already exists");
                         }
                         // Pass to your method
@@ -155,7 +165,7 @@ public class Admin extends User<Admin>{
                     System.out.println("Updating flight");
                     System.out.print("Enter Flight ID: ");
                     int flightId = scanner.nextInt();
-                    if(flightExists(flightId))
+                    if(ExistData.flightExists(connection,flightId))
                     {
                         throw new FlightDoesntExistsExeption("Flight does not exists");
                     }
@@ -189,97 +199,7 @@ public class Admin extends User<Admin>{
             }
         }
     }
-
-    /// ////////////////////////////////////////////////////////////  VIEW WALE
-    public void viewClients() {
-        try {
-            String query = "SELECT * FROM client";  // Your query to fetch clients
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(query);
-
-            // Process the ResultSet and display clients
-            while (resultSet.next()) {
-                int id = resultSet.getInt("id");
-                String name = resultSet.getString("name");
-                String email = resultSet.getString("email");
-                System.out.println("ID: " + id + ", Name: " + name + ", Email: " + email);
-            }
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-    public void viewPlanes() {
-        try {
-            String query = "SELECT * FROM plane";
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(query);
-
-            //Process the ResultSet and display planes
-            while(resultSet.next())
-            {
-                int id = resultSet.getInt("id");
-                int admin_id = resultSet.getInt("admin_id");
-                String plane_model = resultSet.getString("plane_model");
-                String manufacturer = resultSet.getString("manufacturer");
-                int business_seats = resultSet.getInt("business_seats");
-                int economy_seats = resultSet.getInt("economy_seats");
-                System.out.println("ID: " + id + ", Admin ID: " + admin_id + ", Model: " + plane_model +
-                        ", Manufacturer: " + manufacturer + ", Business Seats: " + business_seats +
-                        ", Economy Seats: " + economy_seats);
-
-            }
-        }catch (SQLException e)
-        {
-            System.out.println(e.getMessage());
-        }
-    }
-    public void viewAllBookings() {
-        try{
-            String query = "SELECT * FROM booking";
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(query);
-
-            //Process the ResultSet and display planes
-            while (resultSet.next())
-            {
-                int id = resultSet.getInt("id");
-                int flight_id = resultSet.getInt("flight_id");
-                int client_id = resultSet.getInt("client_id");
-                boolean ispaid = resultSet.getBoolean("ispaid");
-                boolean isreserved = resultSet.getBoolean("isreserved");
-                float fees = resultSet.getFloat("fees");
-                System.out.println("ID: " + id + ", Flight ID: " + flight_id + ", Client ID: " + client_id + ", Is Paid: " + ispaid + ", Is Reserved: " + isreserved + ", Fees: $" + fees);
-            }
-        }catch (SQLException e)
-        {
-            System.out.println(e.getMessage());
-        }
-    }
-    public void viewFlights() {
-        try{
-            String query = "SELECT * FROM flight";
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(query);
-
-            //Process the ResultSet and display planes
-            while (resultSet.next())
-            {
-                int id = resultSet.getInt("id");
-                int plane_id = resultSet.getInt("plane_id");
-                String source = resultSet.getString("source");
-                String destination = resultSet.getString("destination");
-                Time arrival_time = resultSet.getTime("arrival_time");
-                Time reporting_time = resultSet.getTime("reporting_time");
-                float expense = resultSet.getFloat("expense");
-                System.out.println("ID: " + id + ", Plane ID: " + plane_id + ", Source: " + source + ", Destination: " + destination + ", Arrival Time: " + arrival_time + ", Reporting Time: " + reporting_time + ", Expense: $" + expense);
-
-            }
-        }catch (SQLException e)
-        {
-            System.out.println(e.getMessage());
-        }
-    }
-    /// ///////////////////////////////////////////////////////////   ADD WALE
+    /// ///////////////////////////////////////////////////////////   PATA NHI INKO KAHAN DALON
     public void addPlane(String planeModel, String manufacturer, int businessSeats, int economySeats) {
         try {
             String query = "INSERT INTO plane (admin_id, plane_model, manufacturer, business_seats, economy_seats) VALUES (?, ?, ?, ?, ?)";
@@ -300,6 +220,7 @@ public class Admin extends User<Admin>{
             System.out.println("Error: " + e.getMessage());
         }
     }
+
     public void addFlight(int plane_id, String source, String destination, Timestamp arrival_time, Timestamp reporting_time, float expense) {
         try {
             // ✅ Validate time range
@@ -350,8 +271,9 @@ public class Admin extends User<Admin>{
             System.out.println("Error: " + e.getMessage());
         }
     }
-    /// //////////////////////////////////////////////////////////    UPDATE WALE
+
     public String updateFlight(int flightId, String field, Scanner scanner) throws Exception{
+    /// //////////////////////////////////////////////////////////    UPDATE WALE
         try {
             // Validate field name to avoid SQL injection
             if (!field.matches("source|destination|arrival_time|reporting_time|expense")) {
@@ -449,146 +371,4 @@ public class Admin extends User<Admin>{
             return "Input Error: " + e.getMessage();
         }
     }
-    /// //////////////////////////////////////////////////////////     ASSIGN WALE
-    //assign plane code below
-    //    public void assignFlight() {
-//        try {
-//            // Step 1: Display all flights that are not assigned a plane (plane_id is NULL)
-//            String flightQuery = "SELECT id, source, destination FROM flight WHERE plane_id IS NULL";
-//            PreparedStatement flightStmt = connection.prepareStatement(flightQuery);
-//            ResultSet flightRs = flightStmt.executeQuery();
-//
-//            List<Integer> unassignedFlightIds = new ArrayList<>();
-//            System.out.println("Unassigned Flights:");
-//            while (flightRs.next()) {
-//                int flightId = flightRs.getInt("id");
-//                String source = flightRs.getString("source");
-//                String destination = flightRs.getString("destination");
-//                System.out.println("Flight ID: " + flightId + ", Source: " + source + ", Destination: " + destination);
-//                unassignedFlightIds.add(flightId);
-//            }
-//
-//            if (unassignedFlightIds.isEmpty()) {
-//                System.out.println("No unassigned flights available.");
-//                return;
-//            }
-//
-//            // Step 2: Let the user select a flight to assign a plane
-//            Scanner scanner = new Scanner(System.in);
-//            System.out.print("Select a flight ID to assign a plane: ");
-//            int selectedFlightId = scanner.nextInt();
-//            if (!unassignedFlightIds.contains(selectedFlightId)) {
-//                System.out.println("Invalid Flight ID.");
-//                return;
-//            }
-//
-//            // Step 3: Display all planes that are not assigned to any flight
-//            String planeQuery = "SELECT id, plane_model FROM plane WHERE id NOT IN (SELECT plane_id FROM flight WHERE plane_id IS NOT NULL)";
-//            PreparedStatement planeStmt = connection.prepareStatement(planeQuery);
-//            ResultSet planeRs = planeStmt.executeQuery();
-//
-//            List<Integer> availablePlaneIds = new ArrayList<>();
-//            System.out.println("Available Planes:");
-//            while (planeRs.next()) {
-//                int planeId = planeRs.getInt("id");
-//                String planeModel = planeRs.getString("plane_model");
-//                System.out.println("Plane ID: " + planeId + ", Model: " + planeModel);
-//                availablePlaneIds.add(planeId);
-//            }
-//
-//            if (availablePlaneIds.isEmpty()) {
-//                System.out.println("No available planes to assign.");
-//                return;
-//            }
-//
-//            // Step 4: Let the user select a plane to assign to the flight
-//            System.out.print("Select a plane ID to assign to the flight: ");
-//            int selectedPlaneId = scanner.nextInt();
-//            if (!availablePlaneIds.contains(selectedPlaneId)) {
-//                System.out.println("Invalid Plane ID.");
-//                return;
-//            }
-//
-//            // Step 5: Update the flight with the selected plane_id
-//            String updateFlightQuery = "UPDATE flight SET plane_id = ? WHERE id = ?";
-//            PreparedStatement updateStmt = connection.prepareStatement(updateFlightQuery);
-//            updateStmt.setInt(1, selectedPlaneId);
-//            updateStmt.setInt(2, selectedFlightId);
-//
-//            int rowsAffected = updateStmt.executeUpdate();
-//            if (rowsAffected > 0) {
-//                System.out.println("Flight " + selectedFlightId + " has been successfully assigned to Plane " + selectedPlaneId);
-//            } else {
-//                System.out.println("Error assigning the plane to the flight.");
-//            }
-//        } catch (SQLException e) {
-//            System.out.println("Error: " + e.getMessage());
-//        }
-//    } a
-    /// //////////////////////////////////////////////////////////     CHECKERS
-    public boolean planeExists(String model, String manufacturer) {
-        String sql = "SELECT COUNT(*) FROM plane WHERE plane_model = ? AND manufacturer = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, model);
-            stmt.setString(2, manufacturer);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0; // true if count > 0
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-    public boolean planeExists(int planeId) {
-        String sql = "SELECT COUNT(*) FROM plane WHERE plane_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, planeId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0; // true if count > 0
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-        public boolean flightExists(int planeId, String source, String destination, Timestamp arrivalTime, Timestamp reportingTime, double expense) {
-        String sql = "SELECT COUNT(*) FROM flight WHERE plane_id = ? AND source = ? AND destination = ? " +
-                "AND arrival_time = ? AND reporting_time = ? AND expense = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, planeId);
-            stmt.setString(2, source);
-            stmt.setString(3, destination);
-            stmt.setTimestamp(4, arrivalTime);
-            stmt.setTimestamp(5, reportingTime);
-            stmt.setDouble(6, expense);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-        return false;
-    }
-    public boolean flightExists(int flightId) {
-        String sql = "SELECT COUNT(*) FROM flight WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, flightId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0; // true if count > 0
-            }
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-        return false;
-    }
-
 }
-
-
-//Overriding karle for updating
-//Handle Flight UPDATE ......
