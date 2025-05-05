@@ -12,8 +12,14 @@ public class Main {
         try {
             Connection connection = DriverManager.getConnection(url,username,password);
             Scanner scanner = new Scanner(System.in);
+            //START
+
             Admin admin = new Admin(connection,scanner,1);
             admin.adminMenu(admin);
+
+            //END
+            scanner.close();
+            connection.close();
         }catch (SQLException e)
         {
             System.out.println(e.getMessage());
