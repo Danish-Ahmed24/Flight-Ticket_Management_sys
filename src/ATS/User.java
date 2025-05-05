@@ -15,6 +15,6 @@ abstract class User<T extends User> {
         this.role = role;
     }
 
-    public abstract void menu(T user);
+    public abstract void menu(T user) throws Exception;
 }
 

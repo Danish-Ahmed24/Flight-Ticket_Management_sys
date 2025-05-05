@@ -6,8 +6,8 @@ import java.sql.SQLException;
 import java.util.Scanner;
 
 public class Main {
-    private static final String url = "",
-    username="",password="";
+    private static final String url = "jdbc:mysql://localhost:3306/ats",
+    username="root",password="rafay2022";
     public static void main(String[] args) {
         try {
             Connection connection = DriverManager.getConnection(url,username,password);
@@ -15,8 +15,12 @@ public class Main {
             //START
 
             Admin admin = new Admin(1,"d","d","d","d",connection,scanner,1,"d");
-            admin.menu(admin);
-
+            try {
+                admin.menu(admin);
+            }catch (Exception e)
+            {
+                System.out.println(e.getMessage());
+            }
             //END
             scanner.close();
             connection.close();

@@ -1,5 +1,7 @@
 package ATS;
 
+import Exceptions.*;
+
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,7 +22,7 @@ public class Admin extends User<Admin>{
         this.companyname = companyname;
     }
     @Override
-    public void menu(Admin admin)
+    public void menu(Admin admin) throws Exception
     {
         System.out.println("Welcome ADMIN:-> " + admin.name);
         while (true) {
@@ -66,12 +68,16 @@ public class Admin extends User<Admin>{
                     int businessSeats = scanner.nextInt();
 
                     scanner.nextLine();
-
+                    if(businessSeats<0){
+                        throw new ValueLessThanZeroException("Business seats cant be negative");
+                    }
                     System.out.print("Enter number of Economy Seats: ");
                     int economySeats = scanner.nextInt();
 
                     scanner.nextLine();
-
+                    if(economySeats<0){
+                        throw new ValueLessThanZeroException("Economy seats cant be negative");
+                    }
                     admin.addPlane(planeModel, manufacturer, businessSeats, economySeats);
                     break;
                 case 6:
@@ -81,7 +87,13 @@ public class Admin extends User<Admin>{
                     try {
                         int plane_id = scanner.nextInt();
                         scanner.nextLine(); // consume newline
-
+                        if(!planeExists(plane_id)){
+                            throw new PlaneNotFoundException("Plane not available");
+                        }
+                        if(plane_id<0)
+                        {
+                            throw new ValueLessThanZeroException("Id cant be negative");
+                        }
                         System.out.print("Enter source: ");
                         String source = scanner.nextLine();
 
@@ -97,7 +109,9 @@ public class Admin extends User<Admin>{
                         System.out.print("  Second (0-59): ");
                         int arrSecond = scanner.nextInt();
                         scanner.nextLine(); // consume newline
-
+                        if (arrHour < 0 || arrHour > 23 || arrMinute < 0 || arrMinute > 59 || arrSecond < 0 || arrSecond > 59) {
+                            throw new InvalidTimeException("Invalid Time");
+                        }
                         LocalDate today = LocalDate.now();
                         LocalTime arrivalLocalTime = LocalTime.of(arrHour, arrMinute, arrSecond);
                         Timestamp arrival_time = Timestamp.valueOf(today.atTime(arrivalLocalTime));
@@ -111,14 +125,22 @@ public class Admin extends User<Admin>{
                         System.out.print("  Second (0-59): ");
                         int repSecond = scanner.nextInt();
                         scanner.nextLine(); // consume newline
-
+                        if (repHour < 0 || repHour > 23 || repMinute < 0 || repMinute > 59 || repSecond < 0 || repSecond > 59) {
+                            throw new InvalidTimeException("Invalid Time");
+                        }
                         LocalTime reportingLocalTime = LocalTime.of(repHour, repMinute, repSecond);
                         Timestamp reporting_time = Timestamp.valueOf(today.atTime(reportingLocalTime));
 
                         System.out.print("Enter expense: ");
                         float expense = scanner.nextFloat();
                         scanner.nextLine(); // optional, for safety
-
+                        if(expense<0)
+                        {
+                            throw  new ValueLessThanZeroException("Expense cant be negative");
+                        }
+                        if(flightExists(plane_id,source,destination,arrival_time,reporting_time,expense)){
+                            throw new FlightAlreadyExistsException("Flight already exists");
+                        }
                         // Pass to your method
                         admin.addFlight(plane_id, source, destination, arrival_time, reporting_time, expense);
 
@@ -133,12 +155,31 @@ public class Admin extends User<Admin>{
                     System.out.println("Updating flight");
                     System.out.print("Enter Flight ID: ");
                     int flightId = scanner.nextInt();
+                    if(flightExists(flightId))
+                    {
+                        throw new FlightDoesntExistsExeption("Flight does not exists");
+                    }
                     scanner.nextLine(); // Consume newline
-
+                    if(flightId<0)
+                    {
+                        throw new ValueLessThanZeroException("Flight id cant be negative");
+                    }
                     System.out.print("Enter field to update (source, destination, arrival_time, reporting_time, expense): ");
                     String field = scanner.nextLine();
+                    if (!field.equals("source") &&
+                            !field.equals("destination") &&
+                            !field.equals("arrival_time") &&
+                            !field.equals("reporting_time") &&
+                            !field.equals("expense")) {
+                        throw new IllegalArgumentException("Invalid field entered.");
+                    }
 
+                    try{
                     System.out.println(admin.updateFlight(flightId, field, scanner));
+                    }catch (Exception e)
+                    {
+                        System.out.println(e.getMessage());
+                    }
                         break;
                 case 8://logout
                     System.out.println("Logging out...");
@@ -310,7 +351,7 @@ public class Admin extends User<Admin>{
         }
     }
     /// //////////////////////////////////////////////////////////    UPDATE WALE
-    public String updateFlight(int flightId, String field, Scanner scanner) {
+    public String updateFlight(int flightId, String field, Scanner scanner) throws Exception{
         try {
             // Validate field name to avoid SQL injection
             if (!field.matches("source|destination|arrival_time|reporting_time|expense")) {
@@ -340,6 +381,10 @@ public class Admin extends User<Admin>{
                 case "expense":
                     System.out.print("Enter new expense: ");
                     float expense = Float.parseFloat(scanner.nextLine());
+                    if(expense<0)
+                    {
+                        throw new ValueLessThanZeroException("Expense cannot be less than zero");
+                    }
                     stmt.setFloat(1, expense);
                     break;
 
@@ -352,6 +397,9 @@ public class Admin extends User<Admin>{
                     int minute = Integer.parseInt(scanner.nextLine());
                     System.out.print("  Second (0–59): ");
                     int second = Integer.parseInt(scanner.nextLine());
+                    if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59 && second >= 0 && second <= 59) {
+                        throw new InvalidTimeException("Invalid Time");
+                    }
 
                     LocalDate today = LocalDate.now(); // Assuming same day for simplicity
                     LocalTime newTime = LocalTime.of(hour, minute, second);
@@ -492,7 +540,21 @@ public class Admin extends User<Admin>{
         }
         return false;
     }
-    public boolean flightExists(int planeId, String source, String destination, Timestamp arrivalTime, Timestamp reportingTime, double expense) {
+    public boolean planeExists(int planeId) {
+        String sql = "SELECT COUNT(*) FROM plane WHERE plane_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, planeId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0; // true if count > 0
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+        public boolean flightExists(int planeId, String source, String destination, Timestamp arrivalTime, Timestamp reportingTime, double expense) {
         String sql = "SELECT COUNT(*) FROM flight WHERE plane_id = ? AND source = ? AND destination = ? " +
                 "AND arrival_time = ? AND reporting_time = ? AND expense = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -507,10 +569,24 @@ public class Admin extends User<Admin>{
                 return rs.getInt(1) > 0;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         return false;
     }
+    public boolean flightExists(int flightId) {
+        String sql = "SELECT COUNT(*) FROM flight WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, flightId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0; // true if count > 0
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return false;
+    }
+
 }
 
 
