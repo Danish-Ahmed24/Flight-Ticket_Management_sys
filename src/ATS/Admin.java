@@ -2,6 +2,8 @@ package ATS;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Scanner;
 
 public class Admin extends User<Admin>{
@@ -9,7 +11,7 @@ public class Admin extends User<Admin>{
     private float profit;
     private final Connection connection;
     private final Scanner scanner;
-
+    //ye sab toh signup pe verify hongein
     public Admin(int id, String name, String password, String email, String role, Connection connection, Scanner scanner, float profit, String companyname) {
         super(id, name, password, email, role);
         this.connection = connection;
@@ -17,7 +19,6 @@ public class Admin extends User<Admin>{
         this.profit = profit;
         this.companyname = companyname;
     }
-
     @Override
     public void menu(Admin admin)
     {
@@ -27,12 +28,10 @@ public class Admin extends User<Admin>{
             System.out.println("2.  View Planes");//
             System.out.println("3.  View All Bookings");//
             System.out.println("4.  View All Flights");//
-//            System.out.println("5.  Assign Flight");
-            System.out.println("6.  Add Plane");//
-            System.out.println("7.  Add Flight");//
-            System.out.println("8.  Update Flight");
-            System.out.println("9.  Update Plane");
-            System.out.println("10. Log out");
+            System.out.println("5.  Add Plane");//
+            System.out.println("6.  Add Flight");//
+            System.out.println("7.  Update Flight");
+            System.out.println("8. Log out");
             System.out.print("Enter: ");
 
             int option = scanner.nextInt();
@@ -50,11 +49,7 @@ public class Admin extends User<Admin>{
                 case 4:
                     admin.viewFlights();//view Flights
                     break;
-//                case 5:
-//                    System.out.println("Assigning Flight...");
-//                    admin.assignFlight();
-//                    break;
-                case 6:
+                case 5:
                     //Add Plane
                     scanner.nextLine();
                     System.out.print("Enter Plane Model: ");
@@ -79,60 +74,73 @@ public class Admin extends User<Admin>{
 
                     admin.addPlane(planeModel, manufacturer, businessSeats, economySeats);
                     break;
-                case 7:
+                case 6:
                     //addFlight
                     System.out.println("Adding a New Flight...");
                     System.out.print("Enter plane ID: ");
-                    try{
-                    int plane_id = scanner.nextInt();
-                    scanner.nextLine();
-                    System.out.print("Enter source: ");
-                    String source = scanner.nextLine();
-                    System.out.print("Enter destination: ");
-                    String destination = scanner.nextLine();
-                    System.out.print("Enter arrival time (HH:MM:SS): ");
-                    Timestamp arrival_time = Timestamp.valueOf(LocalDate.now() + " " + scanner.nextLine());
-                    System.out.print("Enter reporting time (HH:MM:SS): ");
-                    String reportingStr = scanner.nextLine();
-                    Timestamp reporting_time = Timestamp.valueOf(LocalDate.now() + " " + scanner.nextLine());
-                    System.out.print("Enter expense: ");
-                    float expense = scanner.nextFloat();
-                    admin.addFlight(plane_id, source, destination, arrival_time, reporting_time, expense);
-            }
-             catch (IllegalArgumentException e) {
-                System.out.println("Invalid time format. Please use HH:MM:SS.");
-            }
+                    try {
+                        int plane_id = scanner.nextInt();
+                        scanner.nextLine(); // consume newline
+
+                        System.out.print("Enter source: ");
+                        String source = scanner.nextLine();
+
+                        System.out.print("Enter destination: ");
+                        String destination = scanner.nextLine();
+
+                        // Arrival time
+                        System.out.println("Enter arrival time:");
+                        System.out.print("  Hour (0-23): ");
+                        int arrHour = scanner.nextInt();
+                        System.out.print("  Minute (0-59): ");
+                        int arrMinute = scanner.nextInt();
+                        System.out.print("  Second (0-59): ");
+                        int arrSecond = scanner.nextInt();
+                        scanner.nextLine(); // consume newline
+
+                        LocalDate today = LocalDate.now();
+                        LocalTime arrivalLocalTime = LocalTime.of(arrHour, arrMinute, arrSecond);
+                        Timestamp arrival_time = Timestamp.valueOf(today.atTime(arrivalLocalTime));
+
+                        // Reporting time
+                        System.out.println("Enter reporting time:");
+                        System.out.print("  Hour (0-23): ");
+                        int repHour = scanner.nextInt();
+                        System.out.print("  Minute (0-59): ");
+                        int repMinute = scanner.nextInt();
+                        System.out.print("  Second (0-59): ");
+                        int repSecond = scanner.nextInt();
+                        scanner.nextLine(); // consume newline
+
+                        LocalTime reportingLocalTime = LocalTime.of(repHour, repMinute, repSecond);
+                        Timestamp reporting_time = Timestamp.valueOf(today.atTime(reportingLocalTime));
+
+                        System.out.print("Enter expense: ");
+                        float expense = scanner.nextFloat();
+                        scanner.nextLine(); // optional, for safety
+
+                        // Pass to your method
+                        admin.addFlight(plane_id, source, destination, arrival_time, reporting_time, expense);
+
+                    } catch (Exception e) {
+                        System.out.println("Invalid input: " + e.getMessage());
+                    }
+
 
                     break;
-                case 8:
+                case 7:
                     //Update Flight
+                    System.out.println("Updating flight");
                     System.out.print("Enter Flight ID: ");
                     int flightId = scanner.nextInt();
                     scanner.nextLine(); // Consume newline
+
                     System.out.print("Enter field to update (source, destination, arrival_time, reporting_time, expense): ");
                     String field = scanner.nextLine();
-                    System.out.print("Enter new value for " + field + ": ");
-                    String newValue = scanner.nextLine();
-                    System.out.println(admin.updateFlight(flightId, field, newValue));
-                    break;
-                case 9:
-                    //Update Plane
-                    System.out.println("Updating a Plane...");
-                    Scanner scanner = new Scanner(System.in);
-                    System.out.print("Enter Plane ID to update: ");
-                    int planeId = scanner.nextInt();
-                    scanner.nextLine();
-                    System.out.print("Enter new Plane Model: ");
-                    String updatePlaneModel = scanner.nextLine();
-                    System.out.print("Enter new Manufacturer: ");
-                    String updateManufacturer = scanner.nextLine();
-                    System.out.print("Enter number of Business Seats: ");
-                    int updateBusinessSeats = scanner.nextInt();
-                    System.out.print("Enter number of Economy Seats: ");
-                    int updateEconomySeats = scanner.nextInt();
-                    System.out.println(admin.updatePlane(planeId, updatePlaneModel, updateManufacturer, updateBusinessSeats, updateEconomySeats));
-                    break;
-                case 10://logout
+
+                    System.out.println(admin.updateFlight(flightId, field, scanner));
+                        break;
+                case 8://logout
                     System.out.println("Logging out...");
                     return;
                 default:
@@ -253,8 +261,37 @@ public class Admin extends User<Admin>{
     }
     public void addFlight(int plane_id, String source, String destination, Timestamp arrival_time, Timestamp reporting_time, float expense) {
         try {
-            String query = "INSERT INTO flight (plane_id, source, destination, arrival_time, reporting_time, expense) VALUES (?, ?, ?, ?, ?, ?)";
-            PreparedStatement stmt = connection.prepareStatement(query);
+            // ✅ Validate time range
+            if (!arrival_time.after(reporting_time)) {
+                System.out.println("Error: Arrival time must be after reporting time.");
+                return;
+            }
+
+            // ✅ Check for overlapping flights
+            String checkQuery = "SELECT COUNT(*) FROM flight WHERE plane_id = ? AND (" +
+                    "? < arrival_time AND ? > reporting_time OR " +  // New completely covers existing
+                    "? BETWEEN reporting_time AND arrival_time OR " + // New reporting_time overlaps
+                    "? BETWEEN reporting_time AND arrival_time" +     // New arrival_time overlaps
+                    ")";
+            PreparedStatement checkStmt = connection.prepareStatement(checkQuery);
+            checkStmt.setInt(1, plane_id);
+            checkStmt.setTimestamp(2, reporting_time);
+            checkStmt.setTimestamp(3, arrival_time);
+            checkStmt.setTimestamp(4, reporting_time);
+            checkStmt.setTimestamp(5, arrival_time);
+
+            ResultSet rs = checkStmt.executeQuery();
+            rs.next();
+            int conflictCount = rs.getInt(1);
+
+            if (conflictCount > 0) {
+                System.out.println("Error: Plane is already assigned to an overlapping flight.");
+                return;
+            }
+
+            // ✅ Insert flight
+            String insertQuery = "INSERT INTO flight (plane_id, source, destination, arrival_time, reporting_time, expense) VALUES (?, ?, ?, ?, ?, ?)";
+            PreparedStatement stmt = connection.prepareStatement(insertQuery);
             stmt.setInt(1, plane_id);
             stmt.setString(2, source);
             stmt.setString(3, destination);
@@ -266,72 +303,102 @@ public class Admin extends User<Admin>{
             if (rowsAffected > 0) {
                 System.out.println("Flight added successfully!");
             } else {
-                System.out.println("Error: Plane not added.");
+                System.out.println("Error: Flight not added.");
             }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
         }
     }
-
     /// //////////////////////////////////////////////////////////    UPDATE WALE
-    public String updateFlight(int flightId, String field, String newValue) {
+    public String updateFlight(int flightId, String field, Scanner scanner) {
         try {
             // Validate field name to avoid SQL injection
             if (!field.matches("source|destination|arrival_time|reporting_time|expense")) {
                 return "Invalid field name.";
             }
 
+            // Get current plane_id, arrival_time, and reporting_time for comparison
+            String selectQuery = "SELECT plane_id, arrival_time, reporting_time FROM flight WHERE id = ?";
+            PreparedStatement selectStmt = connection.prepareStatement(selectQuery);
+            selectStmt.setInt(1, flightId);
+            ResultSet rs = selectStmt.executeQuery();
+
+            if (!rs.next()) return "Flight not found.";
+
+            int planeId = rs.getInt("plane_id");
+            Timestamp originalArrival = rs.getTimestamp("arrival_time");
+            Timestamp originalReporting = rs.getTimestamp("reporting_time");
+
+            // New values to update
+            Timestamp newArrival = originalArrival;
+            Timestamp newReporting = originalReporting;
+
             String query = "UPDATE flight SET " + field + " = ? WHERE id = ?";
             PreparedStatement stmt = connection.prepareStatement(query);
 
-            // Set value based on field type
             switch (field) {
                 case "expense":
-                    stmt.setFloat(1, Float.parseFloat(newValue));
+                    System.out.print("Enter new expense: ");
+                    float expense = Float.parseFloat(scanner.nextLine());
+                    stmt.setFloat(1, expense);
                     break;
+
                 case "arrival_time":
                 case "reporting_time":
-                    stmt.setTime(1, Time.valueOf(newValue));
+                    System.out.println("Enter new " + field.replace("_", " ") + ":");
+                    System.out.print("  Hour (0–23): ");
+                    int hour = Integer.parseInt(scanner.nextLine());
+                    System.out.print("  Minute (0–59): ");
+                    int minute = Integer.parseInt(scanner.nextLine());
+                    System.out.print("  Second (0–59): ");
+                    int second = Integer.parseInt(scanner.nextLine());
+
+                    LocalDate today = LocalDate.now(); // Assuming same day for simplicity
+                    LocalTime newTime = LocalTime.of(hour, minute, second);
+                    Timestamp newTimestamp = Timestamp.valueOf(LocalDateTime.of(today, newTime));
+
+                    if (field.equals("arrival_time")) {
+                        newArrival = newTimestamp;
+                    } else {
+                        newReporting = newTimestamp;
+                    }
+
+                    // Validate time order
+                    if (!newArrival.after(newReporting)) {
+                        return "Error: Arrival time must be after reporting time.";
+                    }
+
+                    // Check for time overlaps
+                    String overlapQuery = "SELECT id FROM flight WHERE plane_id = ? AND id != ? AND NOT (arrival_time <= ? OR reporting_time >= ?)";
+                    PreparedStatement overlapStmt = connection.prepareStatement(overlapQuery);
+                    overlapStmt.setInt(1, planeId);
+                    overlapStmt.setInt(2, flightId);
+                    overlapStmt.setTimestamp(3, newReporting);
+                    overlapStmt.setTimestamp(4, newArrival);
+
+                    ResultSet overlapRs = overlapStmt.executeQuery();
+                    if (overlapRs.next()) {
+                        return "Error: Another flight with the same plane overlaps in time.";
+                    }
+
+                    stmt.setTimestamp(1, newTimestamp);
                     break;
+
                 default:
+                    System.out.print("Enter new value for " + field + ": ");
+                    String newValue = scanner.nextLine();
                     stmt.setString(1, newValue);
                     break;
             }
 
             stmt.setInt(2, flightId);
-
             int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected > 0) {
-                return "Flight updated successfully.";
-            } else {
-                return "No flight found with the given ID.";
-            }
+            return rowsAffected > 0 ? "Flight updated successfully." : "No flight found with the given ID.";
 
         } catch (SQLException e) {
             return "SQL Error: " + e.getMessage();
-        } catch (IllegalArgumentException e) {
-            return "Invalid format. Time must be HH:MM:SS or expense must be a number.";
-        }
-    }
-    public String updatePlane(int planeId, String updatePlaneModel, String updateManufacturer, int updateBusinessSeats, int updateEconomySeats) {
-        try {
-            String query = "UPDATE plane SET plane_model = ?, manufacturer = ?, business_seats = ?, economy_seats = ? WHERE id = ? AND admin_id = ?";
-            PreparedStatement stmt = connection.prepareStatement(query);
-            stmt.setString(1, updatePlaneModel);
-            stmt.setString(2, updateManufacturer);
-            stmt.setInt(3, updateBusinessSeats);
-            stmt.setInt(4, updateEconomySeats);
-            stmt.setInt(5, planeId);
-            stmt.setInt(6, this.id); // Ensures only the admin who added it can update
-
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected > 0) {
-                return "Plane updated successfully.";
-            } else {
-                return "No plane found with the given ID for this admin.";
-            }
-        } catch (SQLException e) {
-            return "SQL Error: " + e.getMessage();
+        } catch (Exception e) {
+            return "Input Error: " + e.getMessage();
         }
     }
     /// //////////////////////////////////////////////////////////     ASSIGN WALE
@@ -425,9 +492,7 @@ public class Admin extends User<Admin>{
         }
         return false;
     }
-
-    public boolean flightExists(int planeId, String source, String destination,
-                                Timestamp arrivalTime, Timestamp reportingTime, double expense) {
+    public boolean flightExists(int planeId, String source, String destination, Timestamp arrivalTime, Timestamp reportingTime, double expense) {
         String sql = "SELECT COUNT(*) FROM flight WHERE plane_id = ? AND source = ? AND destination = ? " +
                 "AND arrival_time = ? AND reporting_time = ? AND expense = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -446,10 +511,8 @@ public class Admin extends User<Admin>{
         }
         return false;
     }
-
-
 }
 
 
-
-//Handle Flight ADD ......
+//Overriding karle for updating
+//Handle Flight UPDATE ......
