@@ -70,8 +70,6 @@ public class Client extends User<Client>{
             }
         }
     }
-
-
 //    name,gender,age,email)
 
     public void showProfile()
