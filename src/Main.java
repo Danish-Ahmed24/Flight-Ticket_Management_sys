@@ -1,8 +1,11 @@
 import ATS.Admin;
+import ATS.Client;
+import ATS.IViewData;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
@@ -14,9 +17,10 @@ public class Main {
             Scanner scanner = new Scanner(System.in);
             //START
 
-            Admin admin = new Admin(1,"d","d","d","d",connection,scanner,1,"d");
             try {
-                admin.menu(admin);
+                ArrayList<Client> clients= IViewData.getClients(connection);
+                Client client= clients.get(1);
+                client.menu(client);
             }catch (Exception e)
             {
                 System.out.println(e.getMessage());

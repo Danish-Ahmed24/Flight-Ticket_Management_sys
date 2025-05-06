@@ -14,8 +14,8 @@ public class Admin extends User<Admin>{
     private final Connection connection;
     private final Scanner scanner;
     //ye sab toh signup pe verify hongein
-    public Admin(int id, String name, String password, String email, String role, Connection connection, Scanner scanner, float profit, String companyname) {
-        super(id, name, password, email, role);
+    public Admin(int id, String name, String password, String role, Connection connection, Scanner scanner, float profit, String companyname) {
+        super(id, name, password,companyname+"@ats.com", role);
         this.connection = connection;
         this.scanner = scanner;
         this.profit = profit;
@@ -50,16 +50,16 @@ public class Admin extends User<Admin>{
 
             switch (option) {
                 case 1:
-                    ViewData.viewClients(connection);//view Client
+                    IViewData.viewClients(connection);//view Client
                     break;
                 case 2:
-                    ViewData.viewPlanes(connection);//view Planes
+                    IViewData.viewPlanes(connection);//view Planes
                     break;
                 case 3:
-                    ViewData.viewAllBookings(connection);// view Bookings
+                    IViewData.viewAllBookings(connection);// view Bookings
                     break;
                 case 4:
-                    ViewData.viewFlights(connection);//view Flights
+                    IViewData.viewFlights(connection);//view Flights
                     break;
                 case 5:
                     //Add Plane
@@ -69,7 +69,7 @@ public class Admin extends User<Admin>{
 
                     System.out.print("Enter Manufacturer: ");
                     String manufacturer = scanner.nextLine();
-                    if(ExistData.planeExists(connection,planeModel,manufacturer))
+                    if(IExistData.planeExists(connection,planeModel,manufacturer))
                     {
                         System.out.println("Plane already exists...");
                         break;
@@ -97,7 +97,7 @@ public class Admin extends User<Admin>{
                     try {
                         int plane_id = scanner.nextInt();
                         scanner.nextLine(); // consume newline
-                        if(!ExistData.planeExists(connection,plane_id)){
+                        if(IExistData.planeExists(connection,plane_id)){
                             throw new PlaneNotFoundException("Plane not available");
                         }
                         if(plane_id<0)
@@ -148,7 +148,7 @@ public class Admin extends User<Admin>{
                         {
                             throw  new ValueLessThanZeroException("Expense cant be negative");
                         }
-                        if(ExistData.flightExists(connection,plane_id,source,destination,arrival_time,reporting_time,expense)){
+                        if(IExistData.flightExists(connection,plane_id,source,destination,arrival_time,reporting_time,expense)){
                             throw new FlightAlreadyExistsException("Flight already exists");
                         }
                         // Pass to your method
@@ -165,7 +165,7 @@ public class Admin extends User<Admin>{
                     System.out.println("Updating flight");
                     System.out.print("Enter Flight ID: ");
                     int flightId = scanner.nextInt();
-                    if(ExistData.flightExists(connection,flightId))
+                    if(IExistData.flightExists(connection,flightId))
                     {
                         throw new FlightDoesntExistsExeption("Flight does not exists");
                     }

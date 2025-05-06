@@ -15,6 +15,14 @@ abstract class User<T extends User> {
         this.role = role;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
     public abstract void menu(T user) throws Exception;
 }
 

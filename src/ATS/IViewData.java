@@ -1,8 +1,10 @@
 package ATS;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.Scanner;
 
-public interface ViewData {
+public interface IViewData {
     static void viewClients(Connection connection) {
         try {
             String query = "SELECT * FROM client";  // Your query to fetch clients
@@ -20,6 +22,31 @@ public interface ViewData {
             System.out.println(e.getMessage());
         }
     }
+    static ArrayList<Client> getClients(Connection connection) {
+        ArrayList<Client> clients = new ArrayList<>();
+        try {
+            String query = "SELECT * FROM client";
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);
+            Scanner sc = new Scanner(System.in);
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                Integer adminId = resultSet.getObject("admin_id") != null ? resultSet.getInt("admin_id") : null;
+                String name = resultSet.getString("name");
+                int age = resultSet.getInt("age");
+                String gender = resultSet.getString("gender");
+                String password = resultSet.getString("password");
+                String email = resultSet.getString("email");
+                float balance = resultSet.getFloat("balance");
+
+                clients.add(new Client(id,name,password,"Client",adminId,age,gender,balance,sc,connection));
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return clients;
+    }
+
     static void viewPlanes(Connection connection) {
         try {
             String query = "SELECT * FROM plane";
@@ -85,6 +112,28 @@ public interface ViewData {
                 float expense = resultSet.getFloat("expense");
                 System.out.println("ID: " + id + ", Plane ID: " + plane_id + ", Source: " + source + ", Destination: " + destination + ", Arrival Time: " + arrival_time + ", Reporting Time: " + reporting_time + ", Expense: $" + expense);
 
+            }
+        }catch (SQLException e)
+        {
+            System.out.println(e.getMessage());
+        }
+    }
+    static void viewBookings(Connection connection,Client client){
+        try{
+            String query = "SELECT * FROM booking where client_id="+client.id;
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);
+
+            //Process the ResultSet and display planes
+            while (resultSet.next())
+            {
+                int id = resultSet.getInt("id");
+                int flight_id = resultSet.getInt("flight_id");
+                int client_id = resultSet.getInt("client_id");
+                boolean ispaid = resultSet.getBoolean("ispaid");
+                boolean isreserved = resultSet.getBoolean("isreserved");
+                float fees = resultSet.getFloat("fees");
+                System.out.println("ID: " + id + ", Flight ID: " + flight_id + ", Client ID: " + client_id + ", Is Paid: " + ispaid + ", Is Reserved: " + isreserved + ", Fees: $" + fees);
             }
         }catch (SQLException e)
         {

@@ -2,7 +2,7 @@ package ATS;
 
 import java.sql.*;
 
-public interface ExistData {
+public interface IExistData {
     static public boolean planeExists(Connection connection, String model, String manufacturer) {
         String sql = "SELECT COUNT(*) FROM plane WHERE plane_model = ? AND manufacturer = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
