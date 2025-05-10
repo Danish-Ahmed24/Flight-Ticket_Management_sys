@@ -18,7 +18,7 @@ public interface IExistData {
         return false;
     }
     static public boolean planeExists(Connection connection, int planeId) {
-        String sql = "SELECT COUNT(*) FROM plane WHERE plane_id = ?";
+        String sql = "SELECT COUNT(*) FROM plane WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, planeId);
             ResultSet rs = stmt.executeQuery();

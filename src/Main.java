@@ -18,11 +18,11 @@ public class Main {
             //START
 
             try {
-//                Admin admin = new Admin(1,"d","d","d",connection,scanner,1,"d");
-//                admin.menu(admin);
-                ArrayList<Client> clients= IViewData.getClients(connection);
-                Client client= clients.get(1);
-                client.menu(client);
+                Admin admin = new Admin(1,"d","d","d",connection,scanner,1,"d");
+                admin.menu(admin);
+//                ArrayList<Client> clients= IViewData.getClients(connection);
+//                Client client= clients.get(1);
+//                client.menu(client);
             }catch (Exception e)
             {
                 System.out.println(e.getMessage());

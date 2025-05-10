@@ -99,7 +99,7 @@ public class Client extends User<Client>{
         }
     }
     public void changePassword(String currentPassword, String newPassword, String confirmPassword) {
-        ArrayList<Client> clients = IViewData.getClients(connection);
+        ArrayList<Client> clients = getClients(connection);
 
         for (Client client : clients) {
             // Assuming 'this' refers to the currently logged-in client
@@ -137,51 +137,6 @@ public class Client extends User<Client>{
 
         System.out.println("Client not found.");
     }
-    //phele destination or source or type pochega
-//    public void bookFlight(String type, String reqSource, String reqDestination) {
-//        // Using PreparedStatement for security and performance
-//        String query = "SELECT * FROM flight WHERE source = ? AND destination = ?";
-//
-//        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-//            // Set parameters safely to prevent SQL injection
-//            preparedStatement.setString(1, reqSource);
-//            preparedStatement.setString(2, reqDestination);
-//
-//            // Execute the query
-//            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-//                boolean flightsFound = false;
-//                System.out.println("Available flights from " + reqSource + " to " + reqDestination + ":");
-//                System.out.println("----------------------------------------------------------");
-//
-//                // Process the ResultSet and display flights
-//                while (resultSet.next()) {
-//                    flightsFound = true;
-//                    int id = resultSet.getInt("id");
-//                    int planeId = resultSet.getInt("plane_id");
-//                    String source = resultSet.getString("source");
-//                    String destination = resultSet.getString("destination");
-//                    Time arrivalTime = resultSet.getTime("arrival_time");
-//                    Time reportingTime = resultSet.getTime("reporting_time");
-//                    float expense = resultSet.getFloat("expense");
-//
-//                    // Display flight information in a more readable format
-//                    System.out.printf("Flight ID: %-5d | Plane: %-5d | Route: %-10s to %-10s | Arrival: %-10s | Check-in: %-10s | Price: $%.2f%n",
-//                            id, planeId, source, destination, arrivalTime, reportingTime, expense);
-//                }
-//
-//                if (!flightsFound) {
-//                    System.out.println("No flights available for the selected route.");
-//                } else {
-//                    System.out.println("----------------------------------------------------------");
-//                    System.out.println("Please select a flight ID to book:");
-//                }
-//            }
-//        } catch (SQLException e) {
-//            System.out.println("Error searching for flights: " + e.getMessage());
-//            e.printStackTrace();
-//        }
-//    }  book
-    //book flight
     /**
      * Books a flight for the client after checking availability and balance
      * @param type Type of seat (business/economy)
@@ -356,5 +311,29 @@ public class Client extends User<Client>{
             System.out.println("Error checking flight availability: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+    static ArrayList<Client> getClients(Connection connection) {
+        ArrayList<Client> clients = new ArrayList<>();
+        try {
+            String query = "SELECT * FROM client";
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);
+            Scanner sc = new Scanner(System.in);
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                Integer adminId = resultSet.getObject("admin_id") != null ? resultSet.getInt("admin_id") : null;
+                String name = resultSet.getString("name");
+                int age = resultSet.getInt("age");
+                String gender = resultSet.getString("gender");
+                String password = resultSet.getString("password");
+                String email = resultSet.getString("email");
+                float balance = resultSet.getFloat("balance");
+
+                clients.add(new Client(id,name,password,"Client",adminId,age,gender,balance,sc,connection));
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return clients;
     }
 }

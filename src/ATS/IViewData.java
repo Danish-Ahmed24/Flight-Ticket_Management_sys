@@ -22,30 +22,7 @@ public interface IViewData {
             System.out.println(e.getMessage());
         }
     }
-    static ArrayList<Client> getClients(Connection connection) {
-        ArrayList<Client> clients = new ArrayList<>();
-        try {
-            String query = "SELECT * FROM client";
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(query);
-            Scanner sc = new Scanner(System.in);
-            while (resultSet.next()) {
-                int id = resultSet.getInt("id");
-                Integer adminId = resultSet.getObject("admin_id") != null ? resultSet.getInt("admin_id") : null;
-                String name = resultSet.getString("name");
-                int age = resultSet.getInt("age");
-                String gender = resultSet.getString("gender");
-                String password = resultSet.getString("password");
-                String email = resultSet.getString("email");
-                float balance = resultSet.getFloat("balance");
 
-                clients.add(new Client(id,name,password,"Client",adminId,age,gender,balance,sc,connection));
-            }
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-        return clients;
-    }
 
     static void viewPlanes(Connection connection) {
         try {

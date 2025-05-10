@@ -89,11 +89,21 @@ public class Admin extends User<Admin>{
                     try {
                         System.out.print("Enter plane ID: ");
                         int plane_id = scanner.nextInt();
+<<<<<<< Updated upstream
                         scanner.nextLine(); // Consume newline
 
                         // Check if plane ID is valid and non-negative
                         if (plane_id < 0) {
                             throw new ValueLessThanZeroException("Plane ID cannot be negative.");
+=======
+                        scanner.nextLine(); // consume newline
+                        if(!IExistData.planeExists(connection,plane_id)){
+                            throw new PlaneNotFoundException("Plane not available");
+                        }
+                        if(plane_id<0)
+                        {
+                            throw new ValueLessThanZeroException("Id cant be negative");
+>>>>>>> Stashed changes
                         }
 
                         System.out.print("Enter source: ");
@@ -155,7 +165,11 @@ public class Admin extends User<Admin>{
                     System.out.println("Updating flight");
                     System.out.print("Enter Flight ID: ");
                     int flightId = scanner.nextInt();
+<<<<<<< Updated upstream
                     if(flightExists(flightId))
+=======
+                    if(!IExistData.flightExists(connection,flightId))
+>>>>>>> Stashed changes
                     {
                         throw new FlightDoesntExistsExeption("Flight does not exists");
                     }
@@ -425,7 +439,7 @@ public class Admin extends User<Admin>{
                     int minute = Integer.parseInt(scanner.nextLine());
                     System.out.print("  Second (0–59): ");
                     int second = Integer.parseInt(scanner.nextLine());
-                    if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59 && second >= 0 && second <= 59) {
+                    if (hour < 0 || hour > 23 || minute < 0 || minute > 59 || second < 0 || second > 59) {
                         throw new InvalidTimeException("Invalid Time");
                     }
 
