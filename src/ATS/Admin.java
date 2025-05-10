@@ -162,23 +162,28 @@ public class Admin extends User<Admin> implements PlaneOperations, FlightOperati
                     System.out.println("Updating flight");
                     System.out.print("Enter Flight ID: ");
                     int flightId = scanner.nextInt();
+                    scanner.nextLine(); // Consume newline
                     if(!flightExists(connection,flightId))
                     {
                         throw new FlightDoesntExistsExeption("Flight does not exists");
                     }
-                    scanner.nextLine(); // Consume newline
                     if(flightId<0)
                     {
                         throw new ValueLessThanZeroException("Flight id cant be negative");
                     }
                     System.out.print("Enter field to update (source, destination, arrival_time, reporting_time, expense): ");
                     String field = scanner.nextLine();
-                    if (!field.equals("source") &&
-                            !field.equals("destination") &&
-                            !field.equals("arrival_time") &&
-                            !field.equals("reporting_time") &&
-                            !field.equals("expense")) {
-                        throw new IllegalArgumentException("Invalid field entered.");
+                    try{
+                        if (!field.equals("source") &&
+                                !field.equals("destination") &&
+                                !field.equals("arrival_time") &&
+                                !field.equals("reporting_time") &&
+                                !field.equals("expense")) {
+                            throw new IllegalArgumentException("Invalid field entered.");
+                        }
+                    }catch (IllegalArgumentException e)
+                    {
+                        System.out.println(e.getMessage());
                     }
 
                     try{

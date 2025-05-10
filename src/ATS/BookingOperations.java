@@ -67,6 +67,9 @@ public interface BookingOperations {
         } catch (SQLException e) {
             System.out.println("Error searching for flights: " + e.getMessage());
             e.printStackTrace();
+        } catch (Exception e)
+        {
+            System.out.println(e.getMessage());
         }
     }
     default void bookSelectedFlight(Connection connection,Scanner scanner, int flightId, String seatType,float balance,int id) {

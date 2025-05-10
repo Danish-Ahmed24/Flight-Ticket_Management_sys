@@ -5,16 +5,14 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Client extends User<Client> implements FlightOperations,BookingOperations{
-    private int admin_id;
     private int age;
     private String gender;
     private float balance;
     private Scanner scanner;
     private Connection connection;
 
-    public Client(int id, String name, String password, String role, int admin_id, int age, String gender, float balance,Scanner scanner,Connection connection) {
-        super(id, name, password, name+"@client.com", role);
-        this.admin_id = admin_id;
+    public Client(int id, String name, String password, int age, String gender, float balance,Scanner scanner,Connection connection) {
+        super(id, name, password, name+"@client.com","client");
         this.connection=connection;
         this.scanner=scanner;
         this.age = age;
@@ -145,7 +143,6 @@ public class Client extends User<Client> implements FlightOperations,BookingOper
             Scanner sc = new Scanner(System.in);
             while (resultSet.next()) {
                 int id = resultSet.getInt("id");
-                Integer adminId = resultSet.getObject("admin_id") != null ? resultSet.getInt("admin_id") : null;
                 String name = resultSet.getString("name");
                 int age = resultSet.getInt("age");
                 String gender = resultSet.getString("gender");
@@ -153,7 +150,7 @@ public class Client extends User<Client> implements FlightOperations,BookingOper
                 String email = resultSet.getString("email");
                 float balance = resultSet.getFloat("balance");
 
-                clients.add(new Client(id,name,password,"Client",adminId,age,gender,balance,sc,connection));
+                clients.add(new Client(id,name,password,age,gender,balance,sc,connection));
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
