@@ -1,4 +1,7 @@
 import ATS.Admin;
+import ATS.Client;
+import ATS.User;
+import Exceptions.UserNotFoundException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -13,16 +16,14 @@ public class Main {
             Connection connection = DriverManager.getConnection(url,username,password);
             Scanner scanner = new Scanner(System.in);
             //START
-
             try {
-                Admin admin = new Admin(1,"d","d","d",connection,scanner,1,"d");
-                admin.menu(admin);
-//                ArrayList<Client> clients= IViewData.getClients(connection);
-//                Client client= clients.get(1);
-//                client.menu(client);
-            }catch (Exception e)
-            {
+                User.signin(connection,"admin@airjet.com","admin123");
+            } catch (UserNotFoundException e) {
                 System.out.println(e.getMessage());
+                // Handle invalid login
+            } catch (Exception e) {
+                e.printStackTrace();
+                // Handle other exceptions
             }
             //END
             scanner.close();
