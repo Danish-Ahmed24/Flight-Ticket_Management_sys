@@ -4,7 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class Client extends User<Client>{
+public class Client extends User<Client> implements FlightOperations,BookingOperations{
     private int admin_id;
     private int age;
     private String gender;
@@ -40,10 +40,10 @@ public class Client extends User<Client>{
             switch (option)
             {
                 case 1:
-                    IViewData.viewBookings(connection,client);
+                    viewBookings(connection,client);
                     break;
                 case 2:
-                    IViewData.viewFlights(connection);
+                    viewFlights(connection);
                     break;
                 case 3:
                     scanner.nextLine(); // Consume newline
@@ -53,7 +53,7 @@ public class Client extends User<Client>{
                     String source = scanner.nextLine();
                     System.out.print("Enter destination: ");
                     String destination = scanner.nextLine();
-                    bookFlight(seatType, source, destination);
+                    bookFlight(connection,scanner,seatType, source, destination,balance,id);
                     break;
                 case 4:
                     showProfile();
@@ -79,8 +79,7 @@ public class Client extends User<Client>{
     }
 //    name,gender,age,email)
 
-    public void showProfile()
-    {
+    public void showProfile() {
         try {
             String query = "SELECT * FROM client where id="+this.id;  // Your query to fetch clients
             Statement statement = connection.createStatement();
@@ -136,181 +135,6 @@ public class Client extends User<Client>{
         }
 
         System.out.println("Client not found.");
-    }
-    /**
-     * Books a flight for the client after checking availability and balance
-     * @param type Type of seat (business/economy)
-     * @param reqSource Source location
-     * @param reqDestination Destination location
-     */
-    public void bookFlight(String type, String reqSource, String reqDestination) {
-        // Using PreparedStatement for security and performance
-        String query = "SELECT f.*, p.business_seats, p.economy_seats, p.admin_id, " +
-                "(SELECT COUNT(*) FROM booking b WHERE b.flight_id = f.id AND b.isreserved = 1 AND b.seat_type = ?) as booked_seats " +
-                "FROM flight f " +
-                "JOIN plane p ON f.plane_id = p.id " +
-                "WHERE f.source = ? AND f.destination = ?";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            // Set parameters safely to prevent SQL injection
-            preparedStatement.setString(1, type.toLowerCase());
-            preparedStatement.setString(2, reqSource);
-            preparedStatement.setString(3, reqDestination);
-
-            // Execute the query
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                boolean flightsFound = false;
-                System.out.println("Available flights from " + reqSource + " to " + reqDestination + ":");
-                System.out.println("----------------------------------------------------------");
-
-                // Process the ResultSet and display flights
-                while (resultSet.next()) {
-                    flightsFound = true;
-                    int id = resultSet.getInt("id");
-                    int planeId = resultSet.getInt("plane_id");
-                    int adminId = resultSet.getInt("admin_id");
-                    String source = resultSet.getString("source");
-                    String destination = resultSet.getString("destination");
-                    Timestamp arrivalTime = resultSet.getTimestamp("arrival_time");
-                    Timestamp reportingTime = resultSet.getTimestamp("reporting_time");
-                    float expense = resultSet.getFloat("expense");
-                    int totalSeats = type.equalsIgnoreCase("business") ?
-                            resultSet.getInt("business_seats") :
-                            resultSet.getInt("economy_seats");
-                    int bookedSeats = resultSet.getInt("booked_seats");
-                    int availableSeats = totalSeats - bookedSeats;
-
-                    // Display flight information with available seats info
-                    System.out.printf("Flight ID: %-5d | Plane: %-5d | Route: %-10s to %-10s | Arrival: %-19s | Check-in: %-19s | Price: $%.2f | %s seats available: %d%n",
-                            id, planeId, source, destination, arrivalTime, reportingTime, expense, type, availableSeats);
-                }
-
-                if (!flightsFound) {
-                    System.out.println("No flights available for the selected route.");
-                    return;
-                } else {
-                    System.out.println("----------------------------------------------------------");
-                    System.out.print("Please enter the flight ID to book (or 0 to cancel): ");
-                    int selectedFlightId = scanner.nextInt();
-                    scanner.nextLine(); // Consume newline
-
-                    if (selectedFlightId == 0) {
-                        System.out.println("Booking cancelled.");
-                        return;
-                    }
-
-                    // Book the selected flight
-                    bookSelectedFlight(selectedFlightId, type);
-                }
-            }
-        } catch (SQLException e) {
-            System.out.println("Error searching for flights: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Helper method to book a selected flight
-     * @param flightId ID of the flight to book
-     * @param seatType Type of seat (business/economy)
-     */
-    private void bookSelectedFlight(int flightId, String seatType) {
-        // First verify the flight exists and has available seats
-        String checkQuery = "SELECT f.*, f.expense, p.business_seats, p.economy_seats, p.admin_id, " +
-                "(SELECT COUNT(*) FROM booking b WHERE b.flight_id = f.id AND b.isreserved = 1 AND b.seat_type = ?) as booked_seats " +
-                "FROM flight f " +
-                "JOIN plane p ON f.plane_id = p.id " +
-                "WHERE f.id = ?";
-
-        try (PreparedStatement checkStmt = connection.prepareStatement(checkQuery)) {
-            checkStmt.setString(1, seatType.toLowerCase());
-            checkStmt.setInt(2, flightId);
-
-            try (ResultSet rs = checkStmt.executeQuery()) {
-                if (rs.next()) {
-                    float expense = rs.getFloat("expense");
-                    int adminId = rs.getInt("admin_id");
-                    int totalSeats = seatType.equalsIgnoreCase("business") ?
-                            rs.getInt("business_seats") : rs.getInt("economy_seats");
-                    int bookedSeats = rs.getInt("booked_seats");
-
-                    // Check if seats are available
-                    if (bookedSeats >= totalSeats) {
-                        System.out.println("Sorry, no " + seatType + " seats available on this flight.");
-                        return;
-                    }
-
-                    // Calculate ticket price based on seat type
-                    float ticketPrice = expense;
-                    if (seatType.equalsIgnoreCase("business")) {
-                        ticketPrice *= 1.5; // Business class costs more
-                    }
-
-                    // Check if client has sufficient balance
-                    if (this.balance < ticketPrice) {
-                        System.out.println("Insufficient balance. Your balance: $" + this.balance +
-                                ", Ticket price: $" + ticketPrice);
-                        return;
-                    }
-
-                    // All checks passed, proceed with booking
-                    connection.setAutoCommit(false); // Start transaction
-
-                    try {
-                        // 1. Insert booking record
-                        String bookingQuery = "INSERT INTO booking (flight_id, client_id, ispaid, isreserved, fees, seat_type) VALUES (?, ?, ?, ?, ?, ?)";
-                        try (PreparedStatement bookStmt = connection.prepareStatement(bookingQuery)) {
-                            bookStmt.setInt(1, flightId);
-                            bookStmt.setInt(2, this.id);
-                            bookStmt.setBoolean(3, true); // ispaid
-                            bookStmt.setBoolean(4, true); // isreserved
-                            bookStmt.setFloat(5, ticketPrice);
-                            bookStmt.setString(6, seatType.toLowerCase());
-                            bookStmt.executeUpdate();
-                        }
-
-                        // 2. Deduct balance from client
-                        String updateClientQuery = "UPDATE client SET balance = balance - ? WHERE id = ?";
-                        try (PreparedStatement updateClientStmt = connection.prepareStatement(updateClientQuery)) {
-                            updateClientStmt.setFloat(1, ticketPrice);
-                            updateClientStmt.setInt(2, this.id);
-                            updateClientStmt.executeUpdate();
-                        }
-
-                        // 3. Add to admin's profit
-                        String updateAdminQuery = "UPDATE admin SET profit = profit + ? WHERE id = ?";
-                        try (PreparedStatement updateAdminStmt = connection.prepareStatement(updateAdminQuery)) {
-                            updateAdminStmt.setFloat(1, ticketPrice);
-                            updateAdminStmt.setInt(2, adminId);
-                            updateAdminStmt.executeUpdate();
-                        }
-
-                        // 4. Update local balance
-                        this.balance -= ticketPrice;
-
-                        connection.commit(); // Commit transaction
-                        System.out.println("Flight booked successfully!");
-                        System.out.println("Ticket Details:");
-                        System.out.println("Flight ID: " + flightId);
-                        System.out.println("Seat Type: " + seatType);
-                        System.out.println("Amount Paid: $" + ticketPrice);
-                        System.out.println("Remaining Balance: $" + this.balance);
-
-                    } catch (SQLException e) {
-                        connection.rollback(); // Rollback in case of error
-                        System.out.println("Error during booking: " + e.getMessage());
-                        e.printStackTrace();
-                    } finally {
-                        connection.setAutoCommit(true); // Reset auto-commit
-                    }
-                } else {
-                    System.out.println("Flight not found.");
-                }
-            }
-        } catch (SQLException e) {
-            System.out.println("Error checking flight availability: " + e.getMessage());
-            e.printStackTrace();
-        }
     }
     static ArrayList<Client> getClients(Connection connection) {
         ArrayList<Client> clients = new ArrayList<>();
